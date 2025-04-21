@@ -1,6 +1,107 @@
 # Financial-Analyst
+Sure! Here's the **updated `README.md` file** based on the changes I provided:
+
+```markdown
+# 📊 Financial Analyst Automation Software
+
+## 🤖 Your AI-Powered Virtual Financial Analyst
+
+This system automates the **core responsibilities of a human financial analyst** — from data ingestion to forecasting, reporting, and intelligent recommendations — allowing businesses to make financial decisions without hiring a full-time analyst.
 
 ---
+
+## 🚀 Features
+
+✅ **Multi-Company Support**  
+✅ **Financial Statement Parsing (CSV, Excel, APIs)**  
+✅ **Automated Ratio Analysis (ROE, ROA, Liquidity, etc.)**  
+✅ **Real-Time Financial Dashboards**  
+✅ **Forecasting using AI/ML Models**  
+✅ **Budget vs Actual Tracking**  
+✅ **Automated Report Generation**  
+✅ **Smart Financial Recommendations (Rule-based & AI)**  
+✅ **Role-Based User Access (Admin, Analyst, Viewer)**  
+✅ **Alerts on Financial Red Flags (e.g. Low Cash Flow)**
+
+---
+
+## 📚 Financial Analyst Jobs Covered
+
+| Task | Coverage | Description |
+|------|----------|-------------|
+| Statement Analysis | ✅ Full | Balance Sheet, Income, Cash Flow |
+| KPI & Ratio Calculation | ✅ Full | Liquidity, Profitability, Efficiency, etc. |
+| Trend Monitoring | ✅ Full | Monthly, Quarterly, Yearly |
+| Budgeting & Tracking | ✅ Full | Build & track budget vs actuals |
+| Forecasting | ✅ Full | AI-powered revenue & cost predictions |
+| Recommendations | ✅ Full | Rule-based and AI-driven suggestions |
+| Custom Dashboards | ✅ Full | Visual insights per company |
+| Report Generation | ✅ Full | PDF/HTML exports for any time period |
+| Strategic Insight | 🤖 Partial | AI assistance but human input advised |
+| Presentation Creation | 🤖 Partial | LLM-generated draft reports/slides |
+| Market/Contextual Analysis | ❌ Not Yet | Future LLM/AI integration possible |
+
+---
+
+## 🗃️ Database Schema Overview
+
+- `users` — Users with roles and access control
+- `companies` — Business profiles
+- `financial_statements` — Uploaded statement metadata
+- `financial_entries` — Line-by-line financial data
+- `ratios` — Auto-calculated financial metrics
+- `forecasts` — Time series predictions
+- `recommendations` — Auto-generated advice and alerts
+
+---
+
+## 🧠 AI & ML Capabilities
+
+- **Prophet / ARIMA / XGBoost** for time series forecasting  
+- **LLMs (GPT)** for natural language insights and report writing  
+- **Custom scoring** for financial health monitoring  
+- **Chatbot (optional)** for "Ask your data" interactions
+
+---
+
+## 🛠️ Tech Stack
+
+- **Backend**: Python (FastAPI) or Node.js
+- **Frontend**: React, Chart.js, Plotly
+- **Database**: PostgreSQL
+- **ML**: Prophet, scikit-learn, pandas
+- **Auth**: JWT, OAuth
+- **Deployment**: Docker, AWS/GCP/Azure
+
+---
+
+## ✅ Getting Started
+
+```bash
+git clone https://github.com/your-org/financial-analyst-ai.git
+cd financial-analyst-ai
+docker-compose up --build
+```
+
+---
+
+## 📦 Future Roadmap
+
+- [ ] Chat with data (NLP interface)
+- [ ] AI-generated investment strategies
+- [ ] Market benchmarking per industry
+- [ ] Full financial model builder (DCF, LBO, etc.)
+
+---
+
+## 👤 Built For
+
+- Small Businesses  
+- Startups  
+- CFOs & Founders  
+- Financial Teams  
+- Freelance Accountants
+```
 
 ## 🗃️ SQL SCHEMA
 
@@ -166,9 +267,3 @@ CREATE TABLE recommendations (
 
 ---
 
-Want me to:
-- Generate some **sample queries**?
-- Help you connect this schema to a backend?
-- Or start with **Python or Node.js** APIs to push/pull data?
-
-Let’s keep the momentum!
