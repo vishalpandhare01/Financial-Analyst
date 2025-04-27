@@ -101,8 +101,7 @@ docker-compose up --build
 - CFOs & Founders  
 - Financial Teams  
 - Freelance Accountants
-```
----
+
 ### ✅ Key Concepts for Advanced Modeling
 
 - Support for **multi-company** and **multi-scenario** modeling
@@ -111,9 +110,12 @@ docker-compose up --build
 - Real support for **3-statement modeling** (IS, BS, CF)
 - **Driver-based forecasting** (e.g. Revenue = Units × Price)
 
----
 
 ### 🗃️ Advanced SQL Schema (PostgreSQL)
+
+```
+
+
 
 
 ```sql
@@ -217,71 +219,156 @@ CREATE TABLE insights (
 
 ---
 
-### 🔁 Example Modeling Logic (How It Connects)
+---
 
-- Actuals feed from real accounting data.
-- Forecasts are versioned in `models` with time-series `model_line_items`.
-- `drivers` (e.g., price per unit, growth rate) can be tied to line items.
-- Variance reports compare `actuals` to any forecast model.
-- Insights table stores GPT-generated financial narratives.
+## ✅ Project Workflow: Financial Analyst Automation with Formulas & Logic
 
 ---
 
-Would you like me to also include:
-- ER Diagram (visual schema)
-- Python code to populate or query this schema?
+### 1. **Company Setup & Account Structure**
+#### Goal:
+Let users (CFOs, founders) create a company and define a **Chart of Accounts**.
 
-
-## 🚦 Step-by-Step Development Plan
-
-### **STEP 1: Setup Environment**
-- PostgreSQL DB
-- Backend with FastAPI, Django, or Node.js
-- Basic frontend with React or simple HTML templates
+#### Workflow:
+- User creates a company profile.
+- System generates or imports the Chart of Accounts (COA).
+- Accounts are tagged by type: `Revenue`, `COGS`, `Expense`, `Asset`, `Liability`, etc.
 
 ---
 
-### **STEP 2: Authentication & User Roles**
-- Register/Login users
-- Assign roles (admin, analyst, company user)
+### 2. **Import or Input Actual Financial Data**
+#### Goal:
+Bring in real accounting data (from Excel, QuickBooks, Xero, etc.).
+
+#### Workflow:
+- Upload or API-sync actual monthly data.
+- Store data in `actuals` table, linked to accounts and company.
+
+#### Example:
+| Month | Revenue | COGS | OpEx |
+|-------|---------|------|------|
+| Jan   | 100,000 | 40,000 | 20,000 |
 
 ---
 
-### **STEP 3: Company & Financial Data Input**
-- Allow user to create a company
-- Upload or manually enter financial statements
-- Parse CSV or Excel into `financial_statements` and `financial_entries`
+### 3. **Driver Setup (for Forecasting)**
+#### Goal:
+Define business drivers that affect forecasts.
+
+#### Workflow:
+- User inputs key drivers: unit sales, pricing, conversion rate, headcount, CAC, etc.
+- Drivers are linked to forecast line items (e.g., revenue = units × price).
+
+#### Example Formula:
+```
+Revenue = Units Sold × Average Selling Price
+```
+```
+COGS = Units Sold × Cost per Unit
+```
+```
+Gross Profit = Revenue - COGS
+```
 
 ---
 
-### **STEP 4: Calculation Engine**
-- Backend job to:
-  - Calculate ratios (e.g., current ratio = current assets / current liabilities)
-  - Store in `ratios`
+### 4. **Build Financial Model (Forecast Engine)**
+#### Goal:
+Generate a forward-looking forecast based on past data and drivers.
+
+#### Workflow:
+- User creates a forecast model: 12-month, 3-year, etc.
+- Model copies structure from Chart of Accounts.
+- System fills values based on:
+  - Historical average (for simple mode)
+  - Growth rates (e.g., 10% MoM)
+  - Drivers (for dynamic revenue and expense)
+
+#### Example Forecasting Formulas:
+```
+Future Revenue = Last Month Revenue × (1 + Growth Rate)
+Operating Expense = Headcount × Cost per Employee
+Net Income = Revenue - COGS - OpEx - Taxes
+Cash Flow = Net Income + Depreciation - CapEx
+```
 
 ---
 
-### **STEP 5: Forecasting Engine (Basic)**
-- Use Prophet or simple regression to forecast:
-  - Revenue, expenses, profit
-- Store in `forecasts`
+### 5. **Versioning & Scenario Modeling**
+#### Goal:
+Let users create multiple versions (base case, best case, worst case).
+
+#### Workflow:
+- Each model is saved with a version and scenario type.
+- Forecasts adjust based on new assumptions or driver values.
 
 ---
 
-### **STEP 6: Recommendation System (MVP)**
-- Rule-based logic first:
-  - "If net income < 0 for 2 quarters, recommend cost-cutting"
-- Later, integrate ML/NLP models
-- Store in `recommendations`
+### 6. **Variance Analysis**
+#### Goal:
+Compare actual performance vs. forecast to understand gaps.
+
+#### Workflow:
+- System pulls actuals and forecasts by period and account.
+- Calculates difference and % variance.
+
+#### Example Formula:
+```
+Variance = Actual - Forecast
+Variance % = (Variance / Forecast) × 100
+```
+
+#### Use Case:
+If Actual Revenue = $95,000 and Forecast = $100,000:
+```
+Variance = -5,000
+Variance % = -5%
+```
 
 ---
 
-### **STEP 7: Dashboards & Reports**
-- Query and visualize:
-  - Income trend
-  - Key ratios
-  - Forecast charts
-  - Recommendations
+### 7. **AI Insight Generation**
+#### Goal:
+Generate narrative summaries explaining financial performance.
+
+#### Workflow:
+- System analyzes variances and trends.
+- Sends prompts to GPT/OpenAI to create natural language explanations.
+
+#### Example Output:
+> “Revenue fell short of forecast by 5% in March, primarily due to lower-than-expected conversion rates despite stable traffic volume.”
+
+---
+
+### 8. **Reporting & Dashboards**
+#### Goal:
+Display all KPIs, forecasts, and trends via APIs to frontend.
+
+#### Workflow:
+- API returns time series for Revenue, Gross Margin, Net Income, etc.
+- Graphs are powered by JSON endpoints.
+- Downloadable reports: P&L, Balance Sheet, Cash Flow, KPI Summary.
+
+---
+
+### 9. **Alerting & Notifications (Optional)**
+#### Goal:
+Notify users when key metrics fall outside thresholds.
+
+#### Workflow:
+- Define rules (e.g., “alert me if Net Income drops more than 20%”).
+- System checks actuals vs. rule logic and triggers email/Slack alert.
+
+---
+
+## 🔁 Data Flow Summary
+
+```
+Accounting Data → Actuals
+Drivers → Forecast Engine → Financial Models
+Models + Actuals → Variance Engine
+Variance → Insights (via AI) → Reporting/Dashboards
+```
 
 ---
 
