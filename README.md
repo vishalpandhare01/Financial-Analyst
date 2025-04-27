@@ -102,12 +102,7 @@ docker-compose up --build
 - Financial Teams  
 - Freelance Accountants
 ```
-Perfect—let’s step it up. Here's an **advanced SQL schema** for financial modeling that can handle **multi-entity accounting, forecast tracking, variance analysis, and multi-period financial models**.
-
-This schema is suitable for building an intelligent, scalable financial analyst tool.
-
 ---
-
 ### ✅ Key Concepts for Advanced Modeling
 
 - Support for **multi-company** and **multi-scenario** modeling
@@ -119,6 +114,7 @@ This schema is suitable for building an intelligent, scalable financial analyst 
 ---
 
 ### 🗃️ Advanced SQL Schema (PostgreSQL)
+
 
 ```sql
 -- USERS
