@@ -102,117 +102,139 @@ docker-compose up --build
 - Financial Teams  
 - Freelance Accountants
 ```
+Perfect—let’s step it up. Here's an **advanced SQL schema** for financial modeling that can handle **multi-entity accounting, forecast tracking, variance analysis, and multi-period financial models**.
 
-## 🗃️ SQL SCHEMA
+This schema is suitable for building an intelligent, scalable financial analyst tool.
 
-We'll use **PostgreSQL** as the DB, but this works with other SQL databases too.
+---
 
-### 🧍 `users` – People using the app
+### ✅ Key Concepts for Advanced Modeling
+
+- Support for **multi-company** and **multi-scenario** modeling
+- **Historical actuals** and **forecasted data** separated but linked
+- **Versioning** of models and assumptions
+- Real support for **3-statement modeling** (IS, BS, CF)
+- **Driver-based forecasting** (e.g. Revenue = Units × Price)
+
+---
+
+### 🗃️ Advanced SQL Schema (PostgreSQL)
 
 ```sql
+-- USERS
 CREATE TABLE users (
-    user_id SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100) UNIQUE NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    role VARCHAR(50), -- admin, analyst, viewer, etc.
+    full_name VARCHAR(255),
+    role VARCHAR(50) DEFAULT 'analyst',
     created_at TIMESTAMP DEFAULT NOW()
 );
-```
 
----
-
-### 🏢 `companies` – Each company/business tracked
-
-```sql
+-- COMPANIES
 CREATE TABLE companies (
-    company_id SERIAL PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
     industry VARCHAR(100),
-    country VARCHAR(100),
-    owner_id INT REFERENCES users(user_id),
+    currency VARCHAR(10) DEFAULT 'USD',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- CHART OF ACCOUNTS
+CREATE TABLE accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID REFERENCES companies(id),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50), -- e.g., Revenue, Expense, Asset, Liability
+    sub_type VARCHAR(50), -- e.g., Operating Revenue, SG&A, Current Asset
+    is_drivers_based BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ACTUAL FINANCIAL DATA
+CREATE TABLE actuals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID REFERENCES companies(id),
+    account_id UUID REFERENCES accounts(id),
+    entry_date DATE NOT NULL,
+    amount NUMERIC(18, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- DRIVER ASSUMPTIONS (used in forecasting)
+CREATE TABLE drivers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID REFERENCES companies(id),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    value NUMERIC(18, 4),
+    unit VARCHAR(50), -- e.g., %, $, units
+    valid_from DATE,
+    valid_to DATE
+);
+
+-- FINANCIAL MODELS (versions of forecasts)
+CREATE TABLE models (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID REFERENCES companies(id),
+    name VARCHAR(255),
+    version VARCHAR(50), -- e.g., v1.0, Q2 Forecast
+    type VARCHAR(50), -- Forecast, Budget, Scenario
+    base_model_id UUID, -- for versioning/branching
+    created_by UUID REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- MODEL LINE ITEMS (forecasted or scenario data)
+CREATE TABLE model_line_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    model_id UUID REFERENCES models(id),
+    account_id UUID REFERENCES accounts(id),
+    entry_date DATE NOT NULL,
+    forecast_amount NUMERIC(18, 2),
+    driver_id UUID REFERENCES drivers(id), -- optional
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- VARIANCE ANALYSIS (actual vs forecast)
+CREATE TABLE variances (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID REFERENCES companies(id),
+    account_id UUID REFERENCES accounts(id),
+    entry_date DATE NOT NULL,
+    actual_amount NUMERIC(18, 2),
+    forecast_amount NUMERIC(18, 2),
+    variance NUMERIC(18, 2),
+    variance_pct NUMERIC(8, 4)
+);
+
+-- INSIGHTS / EXPLANATIONS
+CREATE TABLE insights (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    model_id UUID REFERENCES models(id),
+    account_id UUID REFERENCES accounts(id),
+    entry_date DATE,
+    summary TEXT, -- AI-generated explanation
     created_at TIMESTAMP DEFAULT NOW()
 );
 ```
 
 ---
 
-### 📄 `financial_statements` – Uploaded or entered statements (Income, Balance Sheet, etc.)
+### 🔁 Example Modeling Logic (How It Connects)
 
-```sql
-CREATE TABLE financial_statements (
-    statement_id SERIAL PRIMARY KEY,
-    company_id INT REFERENCES companies(company_id),
-    year INT NOT NULL,
-    quarter INT CHECK (quarter BETWEEN 1 AND 4),
-    statement_type VARCHAR(50), -- income_statement, balance_sheet, cash_flow
-    created_at TIMESTAMP DEFAULT NOW()
-);
-```
+- Actuals feed from real accounting data.
+- Forecasts are versioned in `models` with time-series `model_line_items`.
+- `drivers` (e.g., price per unit, growth rate) can be tied to line items.
+- Variance reports compare `actuals` to any forecast model.
+- Insights table stores GPT-generated financial narratives.
 
 ---
 
-### 💰 `financial_entries` – Line items (Revenue, Net Income, Assets, etc.)
+Would you like me to also include:
+- ER Diagram (visual schema)
+- Python code to populate or query this schema?
 
-```sql
-CREATE TABLE financial_entries (
-    entry_id SERIAL PRIMARY KEY,
-    statement_id INT REFERENCES financial_statements(statement_id),
-    entry_name VARCHAR(100), -- e.g. Revenue, Net Income
-    value NUMERIC(18, 2),
-    category VARCHAR(50), -- revenue, expense, asset, liability, equity
-    created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
----
-
-### 📊 `ratios` – Calculated financial ratios (for analysis)
-
-```sql
-CREATE TABLE ratios (
-    ratio_id SERIAL PRIMARY KEY,
-    company_id INT REFERENCES companies(company_id),
-    year INT,
-    quarter INT,
-    ratio_name VARCHAR(100), -- e.g. Current Ratio, ROE
-    value NUMERIC(12, 4),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
----
-
-### 🧠 `forecasts` – AI/ML or rule-based projections
-
-```sql
-CREATE TABLE forecasts (
-    forecast_id SERIAL PRIMARY KEY,
-    company_id INT REFERENCES companies(company_id),
-    metric VARCHAR(100), -- e.g. revenue, cash_flow
-    forecast_period DATE,
-    predicted_value NUMERIC(18, 2),
-    confidence_interval NUMERIC(5, 2),
-    model_used VARCHAR(50),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
----
-
-### 📌 `recommendations` – Advice generated by your system
-
-```sql
-CREATE TABLE recommendations (
-    recommendation_id SERIAL PRIMARY KEY,
-    company_id INT REFERENCES companies(company_id),
-    generated_at TIMESTAMP DEFAULT NOW(),
-    message TEXT,
-    priority_level VARCHAR(20) -- low, medium, high
-);
-```
-
----
 
 ## 🚦 Step-by-Step Development Plan
 
