@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import environ
 import os
+from datetime import timedelta
 
 
 from pathlib import Path
@@ -29,6 +30,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = 'django-insecure-9bv3x2f5j%g1gw&f7&n99%yo8rn!!^6^r4$l2r9iyip7)lhg3*' 
 SECRET_KEY = env('SECRET_KEY' , default='django-insecure-9bv3x2f5j%g1gw&f7&n99%yo8rn!!^6^r4$l2r9iyip7)lhg3*')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -47,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'accounts',
 ]
 
@@ -119,13 +122,16 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
-     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',  # You may also use IsAdminUser, etc.
+     'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+AUTH_USER_MODEL = 'accounts.User'
+
 
 
 # Internationalization
