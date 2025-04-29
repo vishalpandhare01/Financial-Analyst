@@ -24,7 +24,7 @@ class User(AbstractBaseUser):
     last_name = models.CharField(max_length=30)
     company_name = models.CharField(max_length=30)
     is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     objects = UserManager()
 
