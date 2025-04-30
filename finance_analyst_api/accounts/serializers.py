@@ -24,7 +24,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
-
+    
 # user login
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -32,3 +32,16 @@ class LoginSerializer(serializers.Serializer):
     def CheckCredentials(email , password):
         user = authenticate(email=email, password=password)
         return user
+
+#user update 
+class UpdateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'company_name')
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.company_name = validated_data.get('company_name', instance.company_name)
+        instance.save()
+        return instance
