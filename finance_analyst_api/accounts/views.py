@@ -1,8 +1,8 @@
 import logging
-from rest_framework import status, permissions, generics
+from rest_framework import status, permissions, generics ,viewsets
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
+from .serializers import RegisterSerializer, LoginSerializer, UserSerializer , UpdateUserSerializer
 from rest_framework.views import APIView
 
 # user register view
@@ -41,3 +41,15 @@ class UserProfileView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+# user update view
+class UpdateUserView(generics.UpdateAPIView):
+    serializer_class = UpdateUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    def put(self, request, *args, **kwargs):
+        serializer = UpdateUserSerializer(request.user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
