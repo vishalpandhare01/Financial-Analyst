@@ -112,112 +112,181 @@ docker-compose up --build
 
 
 ### 🗃️ Advanced SQL Schema (PostgreSQL)
+---
 
-```
+## 💡 GOAL: Schema to Fully Automate Finance Analysis & Modeling
 
+This version will:
+- Automate budgeting, forecasting, and scenario modeling
+- Contain predefined financial logic (ratios, DCF, margin analysis, etc.)
+- Support rules, assumptions, and formula chains
+- Include scheduling and alerting
+- Be extensible for AI-based suggestions (optional)
 
+---
 
+## ✅ Expanded Schema Components
+
+---
+
+### 📂 1. **Entity & Account Base (as before)**
+No change — still need:
 
 ```sql
--- USERS
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    full_name VARCHAR(255),
-    role VARCHAR(50) DEFAULT 'analyst',
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- COMPANIES
-CREATE TABLE companies (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
-    industry VARCHAR(100),
-    currency VARCHAR(10) DEFAULT 'USD',
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- CHART OF ACCOUNTS
-CREATE TABLE accounts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id UUID REFERENCES companies(id),
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(50), -- e.g., Revenue, Expense, Asset, Liability
-    sub_type VARCHAR(50), -- e.g., Operating Revenue, SG&A, Current Asset
-    is_drivers_based BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- ACTUAL FINANCIAL DATA
-CREATE TABLE actuals (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id UUID REFERENCES companies(id),
-    account_id UUID REFERENCES accounts(id),
-    entry_date DATE NOT NULL,
-    amount NUMERIC(18, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- DRIVER ASSUMPTIONS (used in forecasting)
-CREATE TABLE drivers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id UUID REFERENCES companies(id),
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    value NUMERIC(18, 4),
-    unit VARCHAR(50), -- e.g., %, $, units
-    valid_from DATE,
-    valid_to DATE
-);
-
--- FINANCIAL MODELS (versions of forecasts)
-CREATE TABLE models (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id UUID REFERENCES companies(id),
-    name VARCHAR(255),
-    version VARCHAR(50), -- e.g., v1.0, Q2 Forecast
-    type VARCHAR(50), -- Forecast, Budget, Scenario
-    base_model_id UUID, -- for versioning/branching
-    created_by UUID REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- MODEL LINE ITEMS (forecasted or scenario data)
-CREATE TABLE model_line_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    model_id UUID REFERENCES models(id),
-    account_id UUID REFERENCES accounts(id),
-    entry_date DATE NOT NULL,
-    forecast_amount NUMERIC(18, 2),
-    driver_id UUID REFERENCES drivers(id), -- optional
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- VARIANCE ANALYSIS (actual vs forecast)
-CREATE TABLE variances (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id UUID REFERENCES companies(id),
-    account_id UUID REFERENCES accounts(id),
-    entry_date DATE NOT NULL,
-    actual_amount NUMERIC(18, 2),
-    forecast_amount NUMERIC(18, 2),
-    variance NUMERIC(18, 2),
-    variance_pct NUMERIC(8, 4)
-);
-
--- INSIGHTS / EXPLANATIONS
-CREATE TABLE insights (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    model_id UUID REFERENCES models(id),
-    account_id UUID REFERENCES accounts(id),
-    entry_date DATE,
-    summary TEXT, -- AI-generated explanation
-    created_at TIMESTAMP DEFAULT NOW()
-);
+Entity (...)
+Account (...)
+Transaction (...)
 ```
 
 ---
+
+### 🧠 2. **Financial Logic Engine (NEW)**
+
+```sql
+FinancialRule (
+    id UUID PRIMARY KEY,
+    name VARCHAR,
+    description TEXT,
+    rule_type ENUM('Ratio', 'Validation', 'Calculation', 'Alert'),
+    formula TEXT, -- e.g. (total_revenue - total_expenses) / total_revenue
+    applicable_to ENUM('IncomeStatement', 'BalanceSheet', 'CashFlow', 'Forecast'),
+    created_at TIMESTAMP
+)
+
+RuleInputMapping (
+    id UUID PRIMARY KEY,
+    rule_id UUID REFERENCES FinancialRule(id),
+    input_name VARCHAR, -- e.g. "total_revenue"
+    source ENUM('KPI', 'ModelOutput', 'Snapshot', 'Manual'),
+    source_id UUID, -- reference to actual data
+    created_at TIMESTAMP
+)
+
+RuleOutput (
+    id UUID PRIMARY KEY,
+    rule_id UUID REFERENCES FinancialRule(id),
+    date DATE,
+    result NUMERIC,
+    status ENUM('Pass', 'Fail', 'Warning'),
+    triggered_alert BOOLEAN,
+    evaluated_at TIMESTAMP
+)
+```
+
+---
+
+### 📈 3. **Prebuilt Financial Models**
+
+```sql
+ModelTemplate (
+    id UUID PRIMARY KEY,
+    name VARCHAR,
+    type ENUM('DCF', 'Budgeting', 'Scenario', 'CashFlow', 'Valuation'),
+    description TEXT,
+    default_parameters JSONB, -- e.g., {discount_rate: 0.08, terminal_growth: 0.02}
+    created_at TIMESTAMP
+)
+
+ModelInstance (
+    id UUID PRIMARY KEY,
+    template_id UUID REFERENCES ModelTemplate(id),
+    entity_id UUID REFERENCES Entity(id),
+    assumptions JSONB,
+    created_by UUID REFERENCES User(id),
+    created_at TIMESTAMP
+)
+
+ModelOutput (
+    id UUID PRIMARY KEY,
+    model_instance_id UUID REFERENCES ModelInstance(id),
+    name VARCHAR,
+    value NUMERIC,
+    calculated_at TIMESTAMP
+)
+```
+
+---
+
+### 📅 4. **Forecast Engine & Budget Management**
+
+```sql
+Budget (
+    id UUID PRIMARY KEY,
+    entity_id UUID REFERENCES Entity(id),
+    fiscal_year INT,
+    version INT,
+    created_by UUID REFERENCES User(id),
+    assumptions JSONB,
+    approved BOOLEAN,
+    created_at TIMESTAMP
+)
+
+ForecastPlan (
+    id UUID PRIMARY KEY,
+    entity_id UUID REFERENCES Entity(id),
+    period_start DATE,
+    period_end DATE,
+    forecast_type ENUM('Revenue', 'Expense', 'CashFlow'),
+    method ENUM('TrendBased', 'RuleBased', 'AI'),
+    model_id UUID REFERENCES ModelInstance(id),
+    value NUMERIC,
+    generated_by UUID,
+    created_at TIMESTAMP
+)
+```
+
+---
+
+### 🔔 5. **Alerts & Insights System**
+
+```sql
+Insight (
+    id UUID PRIMARY KEY,
+    entity_id UUID REFERENCES Entity(id),
+    type ENUM('Anomaly', 'Trend', 'KPI_Drop', 'MarginAlert'),
+    description TEXT,
+    severity ENUM('Info', 'Warning', 'Critical'),
+    generated_by ENUM('System', 'AI', 'User'),
+    generated_at TIMESTAMP
+)
+
+ScheduledJob (
+    id UUID PRIMARY KEY,
+    name VARCHAR,
+    job_type ENUM('Forecast', 'AlertCheck', 'RuleEval', 'ReportGen'),
+    frequency ENUM('Daily', 'Weekly', 'Monthly', 'Quarterly'),
+    last_run TIMESTAMP,
+    next_run TIMESTAMP
+)
+```
+
+---
+
+### 🔍 6. **AI Recommendations (Optional, for full automation)**
+
+```sql
+AIRecommendation (
+    id UUID PRIMARY KEY,
+    entity_id UUID REFERENCES Entity(id),
+    model_instance_id UUID REFERENCES ModelInstance(id),
+    suggestion_type ENUM('CostReduction', 'GrowthOpportunity', 'Efficiency'),
+    content TEXT,
+    confidence NUMERIC,
+    suggested_at TIMESTAMP
+)
+```
+
+---
+
+## ✅ What This Schema Now Automates:
+| Task | How |
+|------|-----|
+| **Valuation (DCF, NPV)** | `ModelTemplate + ModelInstance` |
+| **Budgeting** | `Budget + ForecastPlan` |
+| **Cash Flow Projections** | `ForecastPlan` + rules |
+| **Anomaly detection** | `Insight + FinancialRule + Alerts` |
+| **Financial ratios** | `FinancialRule` with mapping |
+| **Dynamic reports** | Outputs stored in `ModelOutput` and `KPIResult` |
 
 ---
 
