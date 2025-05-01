@@ -74,6 +74,7 @@ class LineItem(models.Model):
     name = models.CharField(max_length=255)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
+    # currency  choice field :To Do
 
     def __str__(self):
         return f"{self.name} - {self.period.label}: ${self.amount}"

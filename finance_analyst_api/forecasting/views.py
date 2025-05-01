@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework import status , permissions , generics ,viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import FinanceModelSerializer
-from .models import FinancialModel
+from .serializers import FinanceModelSerializer , PeriodModelSerializer
+from .models import FinancialModel , Period
 
 class FinanceModelView(viewsets.ModelViewSet):
     queryset = FinancialModel.objects.all()
@@ -38,4 +38,23 @@ class FinanceModelView(viewsets.ModelViewSet):
             raise permissions.PermissionDenied("You cannot delete someone else's financial model.")
         instance.delete()  # Delete the instance
         return Response("deleted successfully",status=status.HTTP_200_OK)
+     
+class PeriodView(viewsets.ModelViewSet):
+    queryset = Period.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = PeriodModelSerializer
+    
+    def get_queryset(self):
+        """
+        Optionally restricts the returned periods by filtering against
+        a `period_type` query parameter in the URL.
+        """
+        queryset = Period.objects.all()
+        period_type = self.request.query_params.get('period_type', None)
+        if period_type is not None:
+            queryset = queryset.filter(period_type=period_type)  # Example filter
+        return queryset
+
+    def perform_create(self, serializer):
+        return serializer.save()
     
