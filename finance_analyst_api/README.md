@@ -151,5 +151,189 @@ Each app will focus on a **single responsibility** (SRP) and will help you **sep
 3. **Scalability:** You can move to microservices when scaling is needed but won’t be constrained at the start.
 
 ---
+# modelsheet/views.py
 
-This should give you a solid foundation to start working on the backend while leaving room for growth and scale!
+import pandas as pd
+from django.shortcuts import render
+from .models import FinancialModel, Scenario, Period, LineItem
+
+def upload_financial_data(request):
+    if request.method == 'POST' and request.FILES['file']:
+        file = request.FILES['file']
+        df = pd.read_excel(file)
+
+        model = FinancialModel.objects.get(id=request.POST['model_id'])
+        scenario = Scenario.objects.get(id=request.POST['scenario_id'])
+
+        for _, row in df.iterrows():
+            period, _ = Period.objects.get_or_create(label=row['Period'])
+            LineItem.objects.create(
+                model=model,
+                scenario=scenario,
+                period=period,
+                name=row['Name'],
+                category=row['Category'],
+                amount=row['Amount']
+            )
+
+        return render(request, 'upload_success.html')
+
+    return render(request, 'upload_form.html')
+
+Excel or spreed sheet
+
+| Period    | Name           | Category | Amount    |
+|-----------|----------------|----------|-----------|
+| Jan 2025  | Revenue         | Revenue  | 1000000.00 |
+| Jan 2025  | Operating Cost  | Expense  | 400000.00 |
+| Jan 2025  | Net Income      | Revenue  | 200000.00 |
+
+
+
+Great — let’s walk through **step-by-step** how to build **automation & dynamic projection** into your Django-based financial forecasting tool.
+
+Your goal:  
+Use assumptions (like growth rate) to **automatically generate future financial data** across periods (monthly, quarterly, yearly).
+
+---
+
+## 🧠 Overview
+
+You already have:
+- `FinancialModel`
+- `Assumption` (e.g., growth rate)
+- `Period`
+- `LineItem`
+
+Now you'll add logic that:
+- Uses base data (e.g., starting revenue)
+- Applies assumption logic (e.g., +10% growth)
+- Generates forecasted line items for future periods
+
+---
+
+## ✅ Steps to Add Forecast Automation
+
+---
+
+### 🔹 **1. Add More Useful Assumptions**
+
+Extend your `Assumption` model with a `target_line_item_name`, so you know **which line to apply it to**.
+
+```python
+class Assumption(models.Model):
+    ...
+    target_line_item = models.CharField(max_length=100)  # e.g., 'Revenue'
+```
+
+---
+
+### 🔹 2. Create a "Forecast Generator" Script or Service
+
+Inside `modelsheet/utils/forecasting.py` or similar:
+
+```python
+from .models import FinancialModel, Scenario, Period, LineItem, Assumption
+from decimal import Decimal
+
+def generate_forecast(model_id, scenario_id, base_period_id, forecast_months=12):
+    model = FinancialModel.objects.get(id=model_id)
+    scenario = Scenario.objects.get(id=scenario_id)
+    base_period = Period.objects.get(id=base_period_id)
+    
+    assumptions = Assumption.objects.filter(model=model, scenario=scenario)
+    line_items = LineItem.objects.filter(model=model, scenario=scenario, period=base_period)
+
+    for assumption in assumptions:
+        target_name = assumption.target_line_item
+        growth_rate = assumption.value / 100  # e.g., 10% → 0.1
+
+        try:
+            base_item = line_items.get(name=target_name)
+        except LineItem.DoesNotExist:
+            continue  # Skip if no base value exists
+
+        current_amount = base_item.amount
+
+        for i in range(1, forecast_months + 1):
+            next_period = get_or_create_next_month_period(base_period, i)
+            current_amount = current_amount * (1 + growth_rate)
+
+            LineItem.objects.update_or_create(
+                model=model,
+                scenario=scenario,
+                period=next_period,
+                name=target_name,
+                defaults={
+                    'category': base_item.category,
+                    'amount': round(current_amount, 2)
+                }
+            )
+```
+
+You’ll need a helper function like this:
+
+```python
+from datetime import date, timedelta
+from dateutil.relativedelta import relativedelta
+
+def get_or_create_next_month_period(base_period, offset):
+    new_start = base_period.start_date + relativedelta(months=offset)
+    new_end = (new_start + relativedelta(months=1)) - timedelta(days=1)
+    label = new_start.strftime('%b %Y')
+
+    period, _ = Period.objects.get_or_create(
+        label=label,
+        start_date=new_start,
+        end_date=new_end,
+        period_type='monthly'
+    )
+    return period
+```
+
+---
+
+### 🔹 3. Hook into a View or Button
+
+Call `generate_forecast()` from a view when the user clicks "Generate Forecast".
+
+```python
+def forecast_view(request, model_id, scenario_id):
+    base_period_id = request.GET.get("base_period_id")
+    forecast_months = int(request.GET.get("months", 12))
+
+    generate_forecast(model_id, scenario_id, base_period_id, forecast_months)
+    return JsonResponse({"status": "Forecast generated"})
+```
+
+---
+
+### 🔹 4. Show Forecasted Data
+
+Use Django Admin, Django REST Framework, or frontend charts (e.g., Chart.js) to display the generated forecast over time.
+
+---
+
+## ✅ Optional Enhancements
+
+- Add UI for choosing:
+  - Number of forecast months
+  - Which assumption applies to which line
+- Allow users to edit forecasted values manually
+- Add logic for:
+  - Operating Expenses as % of revenue
+  - Net Income = Revenue - Expense
+  - Cash Flow projections
+
+---
+
+## ✅ Summary: What You Just Built
+
+| ✅ | Feature                              |
+|----|--------------------------------------|
+| ✔️ | Assumption-driven revenue forecasts |
+| ✔️ | Auto-created future periods          |
+| ✔️ | Dynamic projections into new rows    |
+| ✔️ | Pluggable into views or buttons      |
+
+---
