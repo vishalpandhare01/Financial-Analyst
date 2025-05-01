@@ -4,9 +4,12 @@ from accounts.models import User
 
 class FinancialModel(models.Model):
     MODEL_TYPES = [
+        ('DCF', 'DCF'),
         ('Forecast', 'Forecast'),
         ('Budget', 'Budget'),
         ('Scenario', 'Scenario'),
+        ('CashFlow', 'CashFlow'),
+        ('Valuation', 'Valuation'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -19,13 +22,36 @@ class FinancialModel(models.Model):
         return f"{self.name} (v{self.version}) - {self.model_type}"
 
 
-# -- MODEL LINE ITEMS (forecasted or scenario data)
-# CREATE TABLE model_line_items (
-#     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-#     model_id UUID REFERENCES models(id),
-#     account_id UUID REFERENCES accounts(id),
-#     entry_date DATE NOT NULL,
-#     forecast_amount NUMERIC(18, 2),
-#     driver_id UUID REFERENCES drivers(id), -- optional
-#     created_at TIMESTAMP DEFAULT NOW()
+# CREATE TABLE reporting_periods (
+#     period_id SERIAL PRIMARY KEY,
+#     company_id INT NOT NULL,
+#     period_start DATE NOT NULL,
+#     period_end DATE NOT NULL,
+#     is_forecast BOOLEAN DEFAULT FALSE,
+#     FOREIGN KEY (company_id) REFERENCES companies(company_id)
+# );
+
+# CREATE TABLE statement_types (
+#     statement_type_id SERIAL PRIMARY KEY,
+#     name VARCHAR(100) NOT NULL  -- e.g. 'Income Statement', 'Balance Sheet', 'Cash Flow'
+# );
+
+# CREATE TABLE financial_metrics (
+#     metric_id SERIAL PRIMARY KEY,
+#     name VARCHAR(255) NOT NULL,
+#     statement_type_id INT,
+#     unit VARCHAR(50) DEFAULT 'USD',
+#     FOREIGN KEY (statement_type_id) REFERENCES statement_types(statement_type_id)
+# );
+
+
+# CREATE TABLE financial_facts (
+#     fact_id SERIAL PRIMARY KEY,
+#     company_id INT NOT NULL,
+#     period_id INT NOT NULL,
+#     metric_id INT NOT NULL,
+#     value DECIMAL(20, 4),
+#     FOREIGN KEY (company_id) REFERENCES companies(company_id),
+#     FOREIGN KEY (period_id) REFERENCES reporting_periods(period_id),
+#     FOREIGN KEY (metric_id) REFERENCES financial_metrics(metric_id)
 # );
