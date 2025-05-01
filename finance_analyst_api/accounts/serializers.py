@@ -45,3 +45,4 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         instance.company_name = validated_data.get('company_name', instance.company_name)
         instance.save()
         return instance
+
