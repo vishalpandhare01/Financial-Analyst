@@ -1,10 +1,11 @@
 from django.shortcuts import render
-from rest_framework import status , permissions , generics ,viewsets
+from rest_framework import status , permissions , generics ,viewsets ,mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import FinanceModelSerializer , PeriodModelSerializer
-from .models import FinancialModel , Period
+from .serializers import FinanceModelSerializer , PeriodModelSerializer ,ScenarioModelSerializer , LineItemModelSerializer
+from .models import FinancialModel , Period , Scenario , LineItem
 
+# finance  view
 class FinanceModelView(viewsets.ModelViewSet):
     queryset = FinancialModel.objects.all()
     serializer_class = FinanceModelSerializer
@@ -39,22 +40,67 @@ class FinanceModelView(viewsets.ModelViewSet):
         instance.delete()  # Delete the instance
         return Response("deleted successfully",status=status.HTTP_200_OK)
      
-class PeriodView(viewsets.ModelViewSet):
+# Period view
+class PeriodView(mixins.ListModelMixin,
+                 mixins.RetrieveModelMixin,
+                 mixins.CreateModelMixin,
+                 viewsets.GenericViewSet):
     queryset = Period.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = PeriodModelSerializer
     
     def get_queryset(self):
-        """
-        Optionally restricts the returned periods by filtering against
-        a `period_type` query parameter in the URL.
-        """
         queryset = Period.objects.all()
+        start_date = self.request.query_params.get('start_date', None)
+        end_date = self.request.query_params.get('end_date', None)
         period_type = self.request.query_params.get('period_type', None)
         if period_type is not None:
-            queryset = queryset.filter(period_type=period_type)  # Example filter
+            queryset = queryset.filter(period_type=period_type)
+        if start_date is not None:
+            queryset = queryset.filter(start_date=start_date)
+        if end_date is not None:
+            queryset = queryset.filter(end_date=end_date)             
         return queryset
 
     def perform_create(self, serializer):
-        return serializer.save()
+        serializer.save(user=self.request.user)
     
+# Scenario view
+class ScenarioView(viewsets.ModelViewSet):
+    queryset = Scenario.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ScenarioModelSerializer
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        queryset = Scenario.objects.all()
+        model_id = self.request.query_params.get('model_id', None)
+        if model_id is not None:
+            queryset = queryset.filter(model_id=model_id)         
+        return queryset
+    
+    def get_object(self):
+        obj = super().get_object()
+        if obj.user != self.request.user:
+            return Response("You are not authorised",status=status.HTTP_403_FORBIDDEN)
+        return obj
+    
+    def perform_update(self, serializer):
+        if serializer.instance.user != self.request.user:
+            return Response("You are not authorised",status=status.HTTP_403_FORBIDDEN)
+        serializer.save()  # Save the update
+
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+              return Response("You are not authorised",status=status.HTTP_403_FORBIDDEN)
+        instance.delete()  # Delete the instance
+        return Response("deleted successfully",status=status.HTTP_200_OK)
+
+# Line Item view
+class LineItemView(viewsets.ModelViewSet):
+    queryset = LineItem.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = LineItemModelSerializer
+
+
