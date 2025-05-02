@@ -14,6 +14,7 @@ class Period(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     period_type = models.CharField(max_length=20, choices=PERIOD_TYPES)
+    user = models.ForeignKey(User, on_delete=models.CASCADE , null=True)
 
     def __str__(self):
         return f"{self.label} ({self.period_type})"
@@ -53,6 +54,7 @@ class Scenario(models.Model):
     model = models.ForeignKey(FinancialModel, on_delete=models.CASCADE, related_name='scenarios')
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE , null=True)
 
     def __str__(self):
         return f"{self.model.name} - {self.name}"
