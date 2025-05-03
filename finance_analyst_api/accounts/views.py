@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 # user register view
 class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
+    serializer_class = RegisterSerializer
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():

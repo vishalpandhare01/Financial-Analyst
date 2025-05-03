@@ -36,7 +36,7 @@ SECRET_KEY = env('SECRET_KEY' , default='django-insecure-9bv3x2f5j%g1gw&f7&n99%y
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -51,11 +51,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'accounts',
-    'forecasting'
+    'forecasting',
+    'corsheaders',
 ]
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -92,6 +94,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': env.db('DATABASE_URL'),
 }
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # frontend dev server
+    "https://your-frontend-domain.com",
+]
 
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
