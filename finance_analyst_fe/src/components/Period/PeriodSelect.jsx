@@ -87,6 +87,7 @@ const PeriodSelect = ({ onPeriodSelect, selectedPeriod }) => {
 
   const handlePeriodChange = (selectedOption) => {
     if (onPeriodSelect) {
+      console.log('Selected period:', selectedOption);
       onPeriodSelect(selectedOption);
     }
   };

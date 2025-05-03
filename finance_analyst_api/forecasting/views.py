@@ -100,5 +100,11 @@ class LineItemView(viewsets.ModelViewSet):
     queryset = LineItem.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = LineItemModelSerializer
+    def get_queryset(self):
+        queryset = LineItem.objects.all()
+        model_id = self.request.query_params.get('model_id', None)
+        if model_id is not None:
+            queryset = queryset.filter(model_id=model_id)         
+        return queryset
 
 

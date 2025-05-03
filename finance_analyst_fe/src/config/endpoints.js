@@ -8,5 +8,6 @@ export const ENDPOINTS = {
     LOGOUT: `${BASE_URL}/logout/`,
     FINANCE_MODELS: `${BASE_URL}/finance-model/`,
     PERIODS: `${BASE_URL}/period/`,
-    SCENARIOS: `${BASE_URL}/scenario/`
+    SCENARIOS: `${BASE_URL}/scenario/`,
+    LINE_ITEMS: `${BASE_URL}/line-item/`
 }; 
