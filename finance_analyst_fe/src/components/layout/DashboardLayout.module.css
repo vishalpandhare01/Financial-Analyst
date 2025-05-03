@@ -1,0 +1,152 @@
+.dashboardContainer {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+}
+
+.sidebar {
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    width: 300px;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar.closed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.profileSection {
+    margin-bottom: 20px;
+}
+
+.profileHeader {
+    margin-bottom: 20px;
+}
+
+.profileHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+.email, .company {
+    color: #bdc3c7;
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+
+.profileDetails {
+    font-size: 0.85rem;
+    color: #95a5a6;
+}
+
+.logoutButton {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.logoutButton:hover {
+    background-color: #c0392b;
+}
+
+.mainContent {
+    flex: 1;
+    padding: 20px;
+    position: relative;
+}
+
+.toggleSidebar {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 100;
+}
+
+.content {
+    margin-top: 40px;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 1.2rem;
+    color: #2c3e50;
+}
+
+.errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+    text-align: center;
+}
+
+.errorMessage {
+    color: #e74c3c;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+.retryButton {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+}
+
+.retryButton:hover {
+    background-color: #2980b9;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        height: 100vh;
+        z-index: 1000;
+        transform: translateX(0);
+    }
+
+    .sidebar.closed {
+        transform: translateX(-100%);
+    }
+
+    .mainContent {
+        margin-left: 0;
+    }
+
+    .toggleSidebar {
+        display: block;
+    }
+}
+
+@media (min-width: 769px) {
+    .toggleSidebar {
+        display: none;
+    }
+} 

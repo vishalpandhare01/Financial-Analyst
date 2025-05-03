@@ -33,13 +33,11 @@ class FinanceModelView(viewsets.ModelViewSet):
             raise permissions.PermissionDenied("You cannot update someone else's financial model.")
         serializer.save()  # Save the update
 
-    def perform_destroy(self, instance):
-        # Here, you can add custom logic before deletion
-        if instance.user != self.request.user:
-            raise permissions.PermissionDenied("You cannot delete someone else's financial model.")
-        instance.delete()  # Delete the instance
-        return Response("deleted successfully",status=status.HTTP_200_OK)
-     
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()  # checks ownership
+        self.perform_destroy(instance)
+        return Response({"detail": "Deleted successfully."}, status=status.HTTP_200_OK)
+
 # Period view
 class PeriodView(mixins.ListModelMixin,
                  mixins.RetrieveModelMixin,
