@@ -6,6 +6,7 @@ import PeriodSelect from '../../components/Period/PeriodSelect';
 import ScenarioSelect from '../../components/Scenario/ScenarioSelect';
 import LineItemForm from '../../components/LineItemForm';
 import LineItemUpload from '../../components/LineItemUpload';
+import FinanceDataTable from '../../components/FinanceDataTable';
 import styles from './ModelDetails.module.css';
 
 const ModelDetails = () => {
@@ -16,7 +17,7 @@ const ModelDetails = () => {
     const [error, setError] = useState(null);
     const [selectedPeriod, setSelectedPeriod] = useState(null);
     const [selectedScenario, setSelectedScenario] = useState(null);
-    const [activeTab, setActiveTab] = useState('manual'); // 'manual' or 'upload'
+    const [activeTab, setActiveTab] = useState('view');
 
     useEffect(() => {
         const fetchModelDetails = async () => {
@@ -54,16 +55,11 @@ const ModelDetails = () => {
     return (
         <DashboardLayout>
             <div className={styles.container}>
-                <button 
-                    className={styles.backButton}
-                    onClick={() => router.back()}
-                >
+                <button className={styles.backButton} onClick={() => router.back()}>
                     ← Back
                 </button>
-
                 <div className={styles.content}>
                     <h1>{model.name}</h1>
-                    
                     <div className={styles.details}>
                         <div className={styles.detailItem}>
                             <span className={styles.label}>Version:</span>
@@ -73,68 +69,104 @@ const ModelDetails = () => {
                             <span className={styles.label}>Type:</span>
                             <span className={styles.value}>{model.model_type}</span>
                         </div>
-                    </div>
-
-                    <div className={styles.selectionContainer}>
-                        <div className={styles.periodSection}>
-                            <h2>Select Period</h2>
-                            <PeriodSelect onPeriodSelect={handlePeriodSelect} selectedPeriod={selectedPeriod} />
-                        </div>
-
-                        <div className={styles.scenarioSection}>
-                            <h2>Select Scenario</h2>
-                            <ScenarioSelect 
-                                modelId={id} 
-                                onScenarioSelect={handleScenarioSelect} 
-                                selectedScenario={selectedScenario}
-                            />
+                        <div className={styles.detailItem}>
+                            <span className={styles.label}>Created:</span>
+                            <span className={styles.value}>
+                                {new Date(model.created_at).toLocaleDateString()}
+                            </span>
                         </div>
                     </div>
 
-                    {selectedPeriod && selectedScenario && (
-                        <div className={styles.lineItemSection}>
-                            <h2>Add Line Items</h2>
-                            
-                            <div className={styles.tabContainer}>
-                                <div className={styles.tabButtons}>
-                                    <button
-                                        className={`${styles.tabButton} ${activeTab === 'manual' ? styles.activeTab : ''}`}
-                                        onClick={() => setActiveTab('manual')}
-                                    >
-                                        Manual Entry
-                                    </button>
-                                    <button
-                                        className={`${styles.tabButton} ${activeTab === 'upload' ? styles.activeTab : ''}`}
-                                        onClick={() => setActiveTab('upload')}
-                                    >
-                                        Upload Spreadsheet
-                                    </button>
-                                </div>
+                    <div className={styles.lineItemSection}>
+                        <h2>Line Items</h2>
+                        
+                        <div className={styles.tabContainer}>
+                            <div className={styles.tabButtons}>
+                                <button
+                                    className={`${styles.tabButton} ${activeTab === 'view' ? styles.activeTab : ''}`}
+                                    onClick={() => setActiveTab('view')}
+                                >
+                                    View 
+                                </button>
+                                <button
+                                    className={`${styles.tabButton} ${activeTab === 'manual' ? styles.activeTab : ''}`}
+                                    onClick={() => setActiveTab('manual')}
+                                >
+                                    Manual Entry
+                                </button>
+                                <button
+                                    className={`${styles.tabButton} ${activeTab === 'upload' ? styles.activeTab : ''}`}
+                                    onClick={() => setActiveTab('upload')}
+                                >
+                                    Upload Spreadsheet
+                                </button>
+                            </div>
 
-                                <div className={styles.tabContent}>
-                                    {activeTab === 'manual' ? (
-                                        <LineItemForm 
-                                            modelId={id}
-                                            scenarioId={selectedScenario.value}
-                                            periodId={selectedPeriod.value}
-                                            onSuccess={() => {
-                                                console.log('Line item added successfully');
-                                            }}
-                                        />
-                                    ) : (
-                                        <LineItemUpload
-                                            modelId={id}
-                                            scenarioId={selectedScenario.value}
-                                            periodId={selectedPeriod.value}
-                                            onSuccess={() => {
-                                                console.log('Line items uploaded successfully');
-                                            }}
-                                        />
-                                    )}
-                                </div>
+                            <div className={styles.tabContent}>
+                                {activeTab === 'view' ? (
+                                    <FinanceDataTable modelId={id} />
+                                ) : activeTab === 'manual' ? (
+                                    <div className={styles.formSection}>
+                                        <div className={styles.selectionContainer}>
+                                            <div className={styles.periodSection}>
+                                                <h3>Select Period</h3>
+                                                <PeriodSelect 
+                                                onPeriodSelect={handlePeriodSelect}
+                                                onSelect={handlePeriodSelect} />
+                                            </div>
+                                            <div className={styles.scenarioSection}>
+                                                <h3>Select Scenario</h3>
+                                                <ScenarioSelect
+                                                onScenarioSelect={handleScenarioSelect}
+                                                modelId={id} onSelect={handleScenarioSelect} />
+                                            </div>
+                                        </div>
+                                        {selectedPeriod && selectedScenario ? (
+                                            <LineItemForm 
+                                                modelId={id}
+                                                scenarioId={selectedScenario.value}
+                                                periodId={selectedPeriod.value}
+                                                onSuccess={() => {
+                                                    console.log('Line item added successfully');
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className={styles.selectionRequired}>
+                                                Please select both a period and scenario to add line items manually.
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className={styles.formSection}>
+                                        <div className={styles.selectionContainer}>
+                                            <div className={styles.periodSection}>
+                                                <h3>Select Period</h3>
+                                                <PeriodSelect onSelect={handlePeriodSelect} />
+                                            </div>
+                                            <div className={styles.scenarioSection}>
+                                                <h3>Select Scenario</h3>
+                                                <ScenarioSelect modelId={id} onSelect={handleScenarioSelect} />
+                                            </div>
+                                        </div>
+                                        {selectedPeriod && selectedScenario ? (
+                                            <LineItemUpload
+                                                modelId={id}
+                                                scenarioId={selectedScenario.value}
+                                                periodId={selectedPeriod.value}
+                                                onSuccess={() => {
+                                                    console.log('Line items uploaded successfully');
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className={styles.selectionRequired}>
+                                                Please select both a period and scenario to upload line items.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </DashboardLayout>
