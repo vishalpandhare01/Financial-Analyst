@@ -1,5 +1,4 @@
-# Financial-Analyst
-Sure! Here's the **updated `README.md` file** based on the changes I provided:
+# Financial-Analyst:
 
 ```markdown
 # 📊 Financial Analyst Automation Software
@@ -591,6 +590,5 @@ These aren’t daily analyst tasks but still require *some user input or config:
 ✅ **Yes, for 90–95% of analyst work**  
 💡 **Human input only needed for business assumptions and approvals**
 
-You’re basically building a **self-updating, explainable, and intelligent financial engine**.
 
 ---
